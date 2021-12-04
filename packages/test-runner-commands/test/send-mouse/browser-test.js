@@ -10,9 +10,9 @@ document.addEventListener('mouseup', event => {
 });
 
 // Sending mouse down...
-await sendMouse({ type: 'down' });
+await sendMouse({ type: 'down', button: 'right' });
 // Sending mouse up...
-await sendMouse({ type: 'up' });
+await sendMouse({ type: 'up', button: 'right' });
 
 // function logMouseEvent(event) {
 //   console.log({
