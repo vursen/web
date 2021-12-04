@@ -2,11 +2,14 @@ import { sendMouse } from '../../browser/commands.mjs';
 import { expect } from '../chai.js';
 
 function spyEvent() {
-  const events = [];
+  let events = [];
 
   const callback = event => events.push(event);
   callback.getEvents = () => events;
   callback.getLastEvent = () => events[events.length - 1];
+  callback.resetHistory = () => {
+    events = [];
+  };
 
   return callback;
 }
@@ -131,6 +134,8 @@ describe('down and up', () => {
     console.log('Sending mouse down...');
     await sendMouse({ type: 'down', button: 'left' });
     console.log(spy.getEvents().forEach(logMouseEvent));
+
+    spy.resetHistory();
 
     console.log('Sending mouse up...');
     await sendMouse({ type: 'up', button: 'left' });
