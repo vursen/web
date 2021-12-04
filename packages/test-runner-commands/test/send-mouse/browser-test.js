@@ -88,7 +88,6 @@ describe('click', () => {
     spy = spyEvent();
     div.addEventListener('mousedown', spy);
     div.addEventListener('mouseup', spy);
-    div.addEventListener('contextmenu', spy);
 
     [x, y] = getMiddleOfElement(div);
 
@@ -135,7 +134,6 @@ describe('down and up', () => {
     spy = spyEvent();
     div.addEventListener('mousedown', spy);
     div.addEventListener('mouseup', spy);
-    div.addEventListener('contextmenu', spy);
 
     [x, y] = getMiddleOfElement(div);
 
