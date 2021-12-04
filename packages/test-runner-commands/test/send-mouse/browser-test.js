@@ -128,9 +128,11 @@ describe('down and up', () => {
         pageY: event.pageY,
       });
     }
+    console.log('Sending mouse down...');
     await sendMouse({ type: 'down', button: 'left' });
     console.log(spy.getEvents().forEach(logMouseEvent));
 
+    console.log('Sending mouse up...');
     await sendMouse({ type: 'up', button: 'left' });
     console.log(spy.getEvents().forEach(logMouseEvent));
 
