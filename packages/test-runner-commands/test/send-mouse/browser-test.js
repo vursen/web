@@ -39,7 +39,7 @@ function getMiddleOfElement(element) {
   ];
 }
 
-let button;
+let div;
 
 before(() => {
   document.body.style.display = 'flex';
@@ -49,15 +49,15 @@ before(() => {
 });
 
 beforeEach(() => {
-  button = document.createElement('button');
-  button.style.width = '100px';
-  button.style.height = '100px';
+  div = document.createElement('div');
+  div.style.width = '100px';
+  div.style.height = '100px';
 
-  document.body.appendChild(button);
+  document.body.appendChild(div);
 });
 
 afterEach(() => {
-  document.body.removeChild(button);
+  document.body.removeChild(div);
 });
 
 describe('move', () => {
@@ -73,7 +73,7 @@ describe('move', () => {
   });
 
   it('can move mouse to a position', async () => {
-    const [x, y] = getMiddleOfElement(button);
+    const [x, y] = getMiddleOfElement(div);
 
     await sendMouse({ type: 'move', position: [x, y] });
 
@@ -86,10 +86,11 @@ describe('click', () => {
 
   beforeEach(async () => {
     spy = spyEvent();
-    button.addEventListener('mousedown', spy);
-    button.addEventListener('mouseup', spy);
+    div.addEventListener('mousedown', spy);
+    div.addEventListener('mouseup', spy);
+    div.addEventListener('contextmenu', spy);
 
-    [x, y] = getMiddleOfElement(button);
+    [x, y] = getMiddleOfElement(div);
 
     await sendMouse({ type: 'move', position: [0, 0] });
   });
@@ -132,10 +133,11 @@ describe('down and up', () => {
 
   beforeEach(async () => {
     spy = spyEvent();
-    button.addEventListener('mousedown', spy);
-    button.addEventListener('mouseup', spy);
+    div.addEventListener('mousedown', spy);
+    div.addEventListener('mouseup', spy);
+    div.addEventListener('contextmenu', spy);
 
-    [x, y] = getMiddleOfElement(button);
+    [x, y] = getMiddleOfElement(div);
 
     await sendMouse({ type: 'move', position: [x, y] });
   });
