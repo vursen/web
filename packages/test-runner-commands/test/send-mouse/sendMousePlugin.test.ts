@@ -11,6 +11,7 @@ describe.only('sendMousePlugin', function test() {
   this.timeout(50000);
 
   it('can send mouse on puppeteer', async () => {
+    console.log('puppeteer');
     await runTests({
       files: [path.join(__dirname, 'browser-test.js')],
       browsers: [chromeLauncher()],
@@ -19,6 +20,7 @@ describe.only('sendMousePlugin', function test() {
   });
 
   it('can send mouse on playwright', async () => {
+    console.log('playwright');
     await runTests({
       files: [path.join(__dirname, 'browser-test.js')],
       browsers: [
@@ -34,6 +36,7 @@ describe.only('sendMousePlugin', function test() {
     let seleniumServer!: selenium.ChildProcess;
 
     before(async () => {
+      console.log('webdriver');
       seleniumServer = await startSeleniumServer({
         chrome: { version: '96.0.4664.18' },
         firefox: { version: 'latest' },

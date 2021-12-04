@@ -112,7 +112,8 @@ export async function runTests(
             function iterateTests(tests: TestResult[]) {
               for (const test of tests) {
                 if (!test.passed) {
-                  console.log(test.name, test.error?.stack ?? test.error?.message);
+                  console.log(test.name, test.error?.message);
+                  console.log(test.error?.stack);
                 }
               }
             }
