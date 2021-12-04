@@ -24,7 +24,7 @@ describe.only('sendMousePlugin', function test() {
       browsers: [
         playwrightLauncher({ product: 'chromium' }),
         playwrightLauncher({ product: 'firefox' }),
-        playwrightLauncher({ product: 'webkit' }),
+        // playwrightLauncher({ product: 'webkit' }),
       ],
       plugins: [sendMousePlugin()],
     });
