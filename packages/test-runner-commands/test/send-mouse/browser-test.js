@@ -10,6 +10,8 @@ import { expect } from '../chai.js';
 //   });
 // }
 
+console.log(window.navigator.appVersion);
+
 function expectMouseEvent(event, expected) {
   expect(event).to.be.a('MouseEvent');
 
