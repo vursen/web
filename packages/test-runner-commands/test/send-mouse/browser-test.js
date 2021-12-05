@@ -1,209 +1,201 @@
 import { sendMouse } from '../../browser/commands.mjs';
-// import { expect } from '../chai.js';
+import { expect } from '../chai.js';
 
-document.addEventListener('mousedown', event => {
-  console.log('mousedown', event);
+// document.addEventListener('mousedown', event => {
+//   console.log('mousedown', event);
+// });
+
+// document.addEventListener('mouseup', event => {
+//   console.log('mouseup', event);
+// });
+
+// // Sending mouse down...
+// await sendMouse({ type: 'down', button: 'right' });
+// // Sending mouse up...
+// await sendMouse({ type: 'up', button: 'right' });
+
+function spyEvent() {
+  let events = [];
+
+  const callback = event => events.push(event);
+  callback.getEvents = () => events;
+  callback.getLastEvent = () => events[events.length - 1];
+  callback.resetHistory = () => {
+    events = [];
+  };
+
+  return callback;
+}
+
+function getMiddleOfElement(element) {
+  const { top, left, width, height } = element.getBoundingClientRect();
+
+  return [
+    Math.floor(left + window.pageXOffset + height / 2),
+    Math.floor(top + window.pageYOffset + width / 2),
+  ];
+}
+
+let div;
+
+before(() => {
+  document.body.style.display = 'flex';
+  document.body.style.alignItems = 'center';
+  document.body.style.justifyContent = 'center';
+  document.body.style.height = '100vh';
 });
 
-document.addEventListener('mouseup', event => {
-  console.log('mouseup', event);
+beforeEach(() => {
+  div = document.createElement('div');
+  div.style.width = '100px';
+  div.style.height = '100px';
+
+  document.body.appendChild(div);
 });
 
-// Sending mouse down...
-await sendMouse({ type: 'down', button: 'right' });
-// Sending mouse up...
-await sendMouse({ type: 'up', button: 'right' });
+afterEach(() => {
+  document.body.removeChild(div);
+});
 
-// function logMouseEvent(event) {
-//   console.log({
-//     type: event.type,
-//     button: event.button,
-//     pageX: event.pageX,
-//     pageY: event.pageY,
-//   });
-// }
+describe('move', () => {
+  let spy;
 
-// console.log(window.navigator.appVersion);
+  beforeEach(() => {
+    spy = spyEvent();
+    document.addEventListener('mousemove', spy);
+  });
 
-// function expectMouseEvent(event, expected) {
-//   expect(event).to.be.a('MouseEvent');
+  afterEach(() => {
+    document.removeEventListener('mousemove', spy);
+  });
 
-//   const actual = { type: event.type, pageX: event.pageX, pageY: event.pageY, button: event.button };
-//   expect(actual).to.include(expected);
-// }
+  it('can move mouse to a position', async () => {
+    const [x, y] = getMiddleOfElement(div);
 
-// function spyEvent() {
-//   let events = [];
+    await sendMouse({ type: 'move', position: [x, y] });
 
-//   const callback = event => events.push(event);
-//   callback.getEvents = () => events;
-//   callback.getLastEvent = () => events[events.length - 1];
-//   callback.resetHistory = () => {
-//     events = [];
-//   };
+    expect(spy.getLastEvent()).to.include({ type: 'mousemove', pageX: x, pageY: y });
+  });
+});
 
-//   return callback;
-// }
+describe('click', () => {
+  let spy, x, y;
 
-// function getMiddleOfElement(element) {
-//   const { top, left, width, height } = element.getBoundingClientRect();
+  beforeEach(async () => {
+    spy = spyEvent();
+    document.addEventListener('mousedown', spy);
+    document.addEventListener('mouseup', spy);
 
-//   return [
-//     Math.floor(left + window.pageXOffset + height / 2),
-//     Math.floor(top + window.pageYOffset + width / 2),
-//   ];
-// }
+    [x, y] = getMiddleOfElement(div);
 
-// let div;
+    await sendMouse({ type: 'move', position: [0, 0] });
+  });
 
-// before(() => {
-//   document.body.style.display = 'flex';
-//   document.body.style.alignItems = 'center';
-//   document.body.style.justifyContent = 'center';
-//   document.body.style.height = '100vh';
-// });
+  afterEach(() => {
+    document.removeEventListener('mousedown', spy);
+    document.removeEventListener('mouseup', spy);
+  });
 
-// beforeEach(() => {
-//   div = document.createElement('div');
-//   div.style.width = '100px';
-//   div.style.height = '100px';
+  it('can click the left mouse button', async () => {
+    await sendMouse({ type: 'click', position: [x, y], button: 'left' });
 
-//   document.body.appendChild(div);
-// });
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()[1]).to.include({ type: 'mouseup', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(2);
+  });
 
-// afterEach(() => {
-//   document.body.removeChild(div);
-// });
+  it('should click the left mouse button by default', async () => {
+    await sendMouse({ type: 'click', position: [x, y] });
 
-// describe('move', () => {
-//   let spy;
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()[1]).to.include({ type: 'mouseup', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(2);
+  });
 
-//   beforeEach(() => {
-//     spy = spyEvent();
-//     document.addEventListener('mousemove', spy);
-//   });
+  it('can click the middle mouse button', async () => {
+    await sendMouse({ type: 'click', position: [x, y], button: 'middle' });
 
-//   afterEach(() => {
-//     document.removeEventListener('mousemove', spy);
-//   });
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 1, pageX: x, pageY: y });
+    expect(spy.getEvents()[1]).to.include({ type: 'mouseup', button: 1, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(2);
+  });
 
-//   it('can move mouse to a position', async () => {
-//     const [x, y] = getMiddleOfElement(div);
+  it('can click the right mouse button', async () => {
+    await sendMouse({ type: 'click', position: [x, y], button: 'right' });
 
-//     await sendMouse({ type: 'move', position: [x, y] });
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 2, pageX: x, pageY: y });
+    expect(spy.getEvents()[1]).to.include({ type: 'mouseup', button: 2, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(2);
+  });
+});
 
-//     expectMouseEvent(spy.getLastEvent(), { type: 'mousemove', pageX: x, pageY: y });
-//   });
-// });
+describe('down and up', () => {
+  let spy, x, y;
 
-// describe('click', () => {
-//   let spy, x, y;
+  beforeEach(async () => {
+    spy = spyEvent();
+    document.addEventListener('mousedown', spy);
+    document.addEventListener('mouseup', spy);
 
-//   beforeEach(async () => {
-//     spy = spyEvent();
-//     div.addEventListener('mousedown', spy);
-//     div.addEventListener('mouseup', spy);
+    [x, y] = getMiddleOfElement(div);
 
-//     [x, y] = getMiddleOfElement(div);
+    await sendMouse({ type: 'move', position: [x, y] });
+  });
 
-//     await sendMouse({ type: 'move', position: [0, 0] });
-//   });
+  afterEach(() => {
+    document.removeEventListener('mousedown', spy);
+    document.removeEventListener('mouseup', spy);
+  });
 
-//   it('can click the left mouse button', async () => {
-//     await sendMouse({ type: 'click', position: [x, y], button: 'left' });
+  it('can down and up the left mouse button', async () => {
+    await sendMouse({ type: 'down', button: 'left' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 0, pageX: x, pageY: y });
-//     expectMouseEvent(spy.getEvents()[1], { type: 'mouseup', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(2);
-//   });
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
 
-//   it('should click the left mouse button by default', async () => {
-//     await sendMouse({ type: 'click', position: [x, y] });
+    spy.resetHistory();
+    await sendMouse({ type: 'up', button: 'left' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 0, pageX: x, pageY: y });
-//     expectMouseEvent(spy.getEvents()[1], { type: 'mouseup', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(2);
-//   });
+    expect(spy.getEvents()[0]).to.include({ type: 'mouseup', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
+  });
 
-//   it('can click the middle mouse button', async () => {
-//     await sendMouse({ type: 'click', position: [x, y], button: 'middle' });
+  it('should down and up the left mouse button by default', async () => {
+    await sendMouse({ type: 'down' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 1, pageX: x, pageY: y });
-//     expectMouseEvent(spy.getEvents()[1], { type: 'mouseup', button: 1, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(2);
-//   });
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
 
-//   it('can click the right mouse button', async () => {
-//     await sendMouse({ type: 'click', position: [x, y], button: 'right' });
+    spy.resetHistory();
+    await sendMouse({ type: 'up' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 2, pageX: x, pageY: y });
-//     expectMouseEvent(spy.getEvents()[1], { type: 'mouseup', button: 2, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(2);
-//   });
-// });
+    expect(spy.getEvents()[0]).to.include({ type: 'mouseup', button: 0, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
+  });
 
-// describe('down and up', () => {
-//   let spy, x, y;
+  it('can down and up the middle mouse button', async () => {
+    await sendMouse({ type: 'down', button: 'middle' });
 
-//   beforeEach(async () => {
-//     spy = spyEvent();
-//     div.addEventListener('mousedown', spy);
-//     div.addEventListener('mouseup', spy);
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 1, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
 
-//     [x, y] = getMiddleOfElement(div);
+    spy.resetHistory();
+    await sendMouse({ type: 'up', button: 'middle' });
 
-//     await sendMouse({ type: 'move', position: [x, y] });
-//   });
+    expect(spy.getEvents()[0]).to.include({ type: 'mouseup', button: 1, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
+  });
 
-//   it('can down and up the left mouse button', async () => {
-//     await sendMouse({ type: 'down', button: 'left' });
+  it('can down and up the right mouse button', async () => {
+    await sendMouse({ type: 'down', button: 'right' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
+    expect(spy.getEvents()[0]).to.include({ type: 'mousedown', button: 2, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
 
-//     spy.resetHistory();
-//     await sendMouse({ type: 'up', button: 'left' });
+    spy.resetHistory();
+    await sendMouse({ type: 'up', button: 'right' });
 
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mouseup', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-//   });
-
-//   it('should down and up the left mouse button by default', async () => {
-//     await sendMouse({ type: 'down' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-
-//     spy.resetHistory();
-//     await sendMouse({ type: 'up' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mouseup', button: 0, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-//   });
-
-//   it('can down and up the middle mouse button', async () => {
-//     await sendMouse({ type: 'down', button: 'middle' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 1, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-
-//     spy.resetHistory();
-//     await sendMouse({ type: 'up', button: 'middle' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mouseup', button: 1, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-//   });
-
-//   it('can down and up the right mouse button', async () => {
-//     await sendMouse({ type: 'down', button: 'right' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mousedown', button: 2, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-
-//     spy.resetHistory();
-//     await sendMouse({ type: 'up', button: 'right' });
-
-//     expectMouseEvent(spy.getEvents()[0], { type: 'mouseup', button: 2, pageX: x, pageY: y });
-//     expect(spy.getEvents()).to.have.lengthOf(1);
-//   });
-// });
+    expect(spy.getEvents()[0]).to.include({ type: 'mouseup', button: 2, pageX: x, pageY: y });
+    expect(spy.getEvents()).to.have.lengthOf(1);
+  });
+});
